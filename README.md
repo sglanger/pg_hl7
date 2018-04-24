@@ -5,9 +5,9 @@ this is intended to be used as the base part of a Compose project, the other par
 
 Dbase Status;
 -----------
-Builds, runs, have to build the schema after launch by connecting and running script laod_sql.sh
+Builds, runs, have to build the schema after launch by connecting and running script load_sql.sh
 
-To Do: set up volumes for dbase persistentence
+To Do: set up volumes for dbase persistence
 
 
 MIRTH Status;
