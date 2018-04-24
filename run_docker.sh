@@ -1,9 +1,9 @@
 #!/bin/bash
 
 ###############################################
-# Author: SG Langer Jan 2016
+# Author: SG Langer April 2018
 # Purpose: put all the Docker commands to build/run 
-#	ddw-dbase in one easy place
+#	this Docker in one easy place
 #
 ##########################################
 
