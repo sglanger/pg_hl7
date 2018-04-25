@@ -1,12 +1,12 @@
 # pg_hl7
 postgres extentions for handling hl7
 
-this is intended to be a two part Compose project, enabling a MIRTH DOcker client to use postgres as a backend dbase for its HL7 channel configuration (via mirthdb) as well as a persistent dbase for the processed HL7 inputs (rsnadb).
+this is intended to be a two part Compose project, enabling a MIRTH Docker client to use postgres as a backend dbase for its HL7 channel configuration (via mirthdb) as well as a persistent dbase for the processed HL7 inputs (rsnadb).
 
 For the status of each component, refer to the READMEs in their respective folders. They work in a standalone fashion now (4-25). When the below is finished they will work under the control of the single compose.yaml file
 
 
-# to Use and Deploy this Stack under Compose (all below is pending)
+### to Use and Deploy this Stack under Compose (all below is pending)
 
 
 ### Clone this repo 
@@ -31,13 +31,13 @@ Wait for the services to start, and then you should be able to point your browse
 	http://yourhost:8080
 ---
 
-and see the usual MIRTH control installer. GO ahead and the the java web start control and initiate Mirth then install any relvent HL7 channels you hav for your site. They will be stored to the postgres dbase. For the HL7 channel, make sure it points to the correct postgres endpoint also, for example
+and see the usual MIRTH control installer. Go ahead and the the java web start control and initiate Mirth then install any relevent HL7 channels you have for your site. They will be stored to the postgres dbase. For the HL7 channel, make sure it points to the correct postgres endpoint also, for example
 
 ---
 	DatabaseConnectionFactory.createDatabaseConnection('org.postgresql.Driver', 'jdbc:postgresql://127.0.0.1:5432/rsnadb','edge','yourpasshere');
 ---
 
-With all containers in this stack running you shuold see the follow new ports exposed on your docker host
+With all containers running you shuold see the follow new ports exposed on your docker host
 
 * '5432': postgres
 * '8080': mirth java webstart downloaded
