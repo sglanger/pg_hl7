@@ -31,7 +31,7 @@ Wait for the services to start, and then you should be able to point your browse
 	http://yourhost:8080
 ---
 
-and see the usual MIRTH control installer. Go ahead and the the java web start control and initiate Mirth then install any relevent HL7 channels you have for your site. They will be stored to the postgres dbase. For the HL7 channel, make sure it points to the correct postgres endpoint also, for example
+and see the usual MIRTH control installer. Go ahead and get the java webstart control and initiate Mirth then install any relevent HL7 channels you have for your site. They will be stored to the postgres dbase. For the HL7 channel, make sure it points to the correct postgres endpoint also, for example
 
 ---
 	DatabaseConnectionFactory.createDatabaseConnection('org.postgresql.Driver', 'jdbc:postgresql://127.0.0.1:5432/rsnadb','edge','yourpasshere');
@@ -40,7 +40,7 @@ and see the usual MIRTH control installer. Go ahead and the the java web start c
 With all containers running you shuold see the follow new ports exposed on your docker host
 
 * '5432': postgres
-* '8080': mirth java webstart downloaded
+* '8080': mirth java webstart downloader
 * '8443': mirth control port
 
 You will also see the folling volumes created

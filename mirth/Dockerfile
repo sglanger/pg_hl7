@@ -21,7 +21,6 @@ RUN apt-get install -y \
 	nmap
 
 # modify mirth to use remote postgres dbase
-# done on docker run line
 RUN mv /opt/mirth-connect/conf/mirth.properties /opt/mirth-connect/conf/mirth.properties.ori
 ADD my_mirth.properties /opt/mirth-connect/conf/mirth.properties
 
