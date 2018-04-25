@@ -1,4 +1,4 @@
-# pg_hl7
+# pg_hl7: mirth docker
 postgres extentions for handling hl7
 
 this is intended to be used as the client part of a two part Compose project, the other part is the postgres dbase

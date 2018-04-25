@@ -25,12 +25,14 @@ For the status of each component, refer to the READMEs in their respective folde
 ---
 
 ### Wait for the services to start
------------
+
  You shuld be able to point your browser at the normal Mirth control URL
 ---
 	http://yourhost:8080
 ---
+
 and see the usual MIRTH control installer. GO ahead and the the java web start control and initiate Mirth then install any relvent HL7 channels you hav for your site. They will be stored to the postgres dbase. For the HL7 channel, make sure it points to the correct postgres endpoint also, for example
+
 ---
 	DatabaseConnectionFactory.createDatabaseConnection('org.postgresql.Driver', 'jdbc:postgresql://127.0.0.1:5432/rsnadb','edge','d17bK4#M');
 ---
