@@ -3,8 +3,8 @@ FROM brandonstevens/mirth-connect
 
 MAINTAINER Steve Langer <sglanger@fastmail.COM>
 ###############################################################
-# POSTGRES
-# extensions to postgresql for MIRTH HL7
+# pg-MIRTH
+# extensions to mirth-docker to work with postgres backend
 # inspired by 	https://github.com/brandonstevens/mirth-connect-docker
 # and 			https://hub.docker.com/r/brandonstevens/mirth-connect
 
