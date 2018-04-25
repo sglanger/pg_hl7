@@ -24,9 +24,7 @@ For the status of each component, refer to the READMEs in their respective folde
 	sudo docker-compose up
 ---
 
-### Wait for the services to start
-
- You shuld be able to point your browser at the normal Mirth control URL
+Wait for the services to start, and then you should be able to point your browser at the normal Mirth control URL
 ---
 	http://yourhost:8080
 ---
