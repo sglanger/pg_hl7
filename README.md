@@ -11,7 +11,7 @@ For the status of each component, refer to the READMEs in their respective folde
 
 ### Clone this repo 
 ---
-	git clone  https://github.com/sglanger/ph_hl7
+	git clone  https://github.com/sglanger/pg_hl7
 ---
 
 
@@ -37,13 +37,13 @@ and see the usual MIRTH control installer. Go ahead and get the java webstart co
 	DatabaseConnectionFactory.createDatabaseConnection('org.postgresql.Driver', 'jdbc:postgresql://127.0.0.1:5432/rsnadb','edge','yourpasshere');
 ---
 
-With all containers running you shuold see the follow new ports exposed on your docker host
+With all containers running you should see the follow new ports exposed on your docker host
 
 * '5432': postgres
 * '8080': mirth java webstart downloader
 * '8443': mirth control port
 
-You will also see the folling volumes created
+You will also see the following volumes created
 * 'postgres-data': for the postgres tables
 
 

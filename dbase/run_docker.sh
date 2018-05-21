@@ -21,6 +21,7 @@ host="127.0.0.1"
 repo="postgres"
 image="dbase"
 instance="pg"
+volume="sgl_data"
 
 
 case "$1" in
@@ -30,13 +31,17 @@ case "$1" in
 		sudo docker stop $instance
 		sudo docker rmi -f $image
 		sudo docker rm $instance
+		sudo docker volume rm $volume
+
+		# create the postgre volume
+		sudo docker volume create $volume
 
 		# now build from clean. The DOcker run line uses --net="host" term to expose the docker
 		# on the Host's NIC. For better security, remove it
 		sudo docker build --rm=true -t $image .
 		sudo docker run  --net="host" --name $instance -e POSTGRES_PASSWORD=postgres -d $image  postgres -c 'config_file=/etc/postgresql/postgresql.conf'
 		sleep 3
-		sudo docker ps
+		$0 status
 	;;
 
 	conn)
@@ -63,6 +68,11 @@ case "$1" in
 		IFS=$original
 	;;
 
+	getip)
+		host=$(sudo docker inspect --format '{{ .NetworkSettings.IPAddress }}' $instance)
+		echo $host
+	;;
+
 	restart)
 		$0 stop
 		$0 start
@@ -70,6 +80,7 @@ case "$1" in
 
 	status)
 		sudo docker ps; echo
+		sudo docker volume inspect $volume ; echo
 		#sleep 3
 		#sudo docker images 
 	;;
@@ -88,13 +99,13 @@ case "$1" in
 		# sudo docker run -p $host:2022:2022  --name $instance  -d $image
 		sudo docker run --net="host"  --name $instance -e POSTGRES_PASSWORD=postgres -d $image  postgres -c 'config_file=/etc/postgresql/postgresql.conf'
 		sleep 3
-		sudo docker ps
+		$0 status
 		sudo docker exec -it -u root $instance /bin/bash
 	;;
 
 	*)
 		echo "invalid option"
-		echo "valid options: build/start/stop/restart/status/conn"
+		echo "valid options: build/start/stop/restart/status/conn/getip"
 		exit
 	;;
 esac

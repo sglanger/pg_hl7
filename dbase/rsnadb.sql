@@ -72,6 +72,101 @@ COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 
 SET search_path = public, pg_catalog;
 
+--
+-- Name: removealldashesandleading0(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION removealldashesandleading0() RETURNS text
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+	patients_row RECORD;
+	mrn_old text;
+	mrn_new text;
+	mrn_firstchar text;
+	n_updated integer := 0;
+	n_deleted integer := 0;
+	patient_id_old integer;
+	patient_id_new integer;
+	exams_row RECORD;
+	exam_id_old integer;
+	exam_id_new integer;
+	accession_no text;
+BEGIN
+	RAISE NOTICE 'Replacing all dashes from mrn field in patients table of rsnadb';
+	FOR patients_row in SELECT * from patients where mrn like '%-%' LOOP
+	   	mrn_old := patients_row.mrn;
+
+		mrn_new := replace(mrn_old, '-', '');
+		mrn_firstchar := substring(mrn_old from 1 for 1);
+	
+		IF mrn_firstchar = '0' THEN
+			mrn_new := substring(mrn_new from 2);
+		END IF;
+
+
+		IF mrn_new = mrn_old THEN
+			CONTINUE;
+		ELSE
+			RAISE NOTICE 'Old mrn:% -> New mrn:%', mrn_old, mrn_new;
+		END IF;
+
+		-- Now mrn is one record from patients table
+		RAISE NOTICE 'Processing % ...', mrn_old;
+
+		IF NOT EXISTS (SELECT 1 from patients where mrn=mrn_new) THEN
+			RAISE NOTICE '==>Updating old MRN % to new MRN: %', mrn_old, mrn_new;
+			UPDATE patients set mrn=mrn_new where mrn=mrn_old;
+			n_updated := n_updated + 1;
+		ELSE
+			RAISE NOTICE '==>Deleting the old MRN: %', mrn_old;
+
+			-- Get the old patient_id:
+			SELECT INTO patient_id_old patient_id FROM patients WHERE mrn=mrn_old;
+			-- Get the new patient_id:
+			SELECT INTO patient_id_new patient_id FROM patients WHERE mrn=mrn_new;
+			-- Replace the patient_id in exams table to new patient_id:
+			FOR exams_row in SELECT * from exams WHERE patient_id=patient_id_old LOOP
+				exam_id_old := exams_row.exam_id;
+		   		accession_no := exams_row.accession_number;
+				SELECT INTO exam_id_new exam_id FROM exams WHERE patient_id=patient_id_new AND accession_number=accession_no;
+
+				-- If the <accession_no, patient_id_new> key already exists, then we just delete the row <accession_no, patient_id_old>:
+				IF EXISTS (SELECT 1 FROM exams WHERE accession_number=accession_no AND patient_id=patient_id_new) THEN
+					-- Make sure reports table has no dependency on exam's this recpord:
+					IF EXISTS (SELECT 1 FROM reports WHERE exam_id=exam_id_old) THEN
+						-- <exam_id, status, status_time_stamp> is a key or reports table, so we need to decide if we should delete or update:
+						IF EXISTS (SELECT * FROM reports r1, reports r2 WHERE r1.exam_id=exam_id_old AND r2.exam_id=exam_id_new AND r1.status=r2.status AND r1.status_timestamp=r2.status_timestamp) THEN
+							DELETE FROM reports WHERE exam_id = exam_id_old;
+						ELSE
+							UPDATE reports SET exam_id=exam_id_new WHERE exam_id=exam_id_old;
+						END IF;
+					END IF;
+
+					DELETE FROM exams WHERE accession_number=accession_no AND patient_id=patient_id_old;
+
+				-- Else we change the patient_id_old to patient_id_new:
+				ELSE
+					UPDATE exams SET patient_id=patient_id_new WHERE accession_number=accession_no AND patient_id=patient_id_old;
+				END IF;
+
+			END LOOP;
+			
+			-- Delete the old record in patient table:
+			DELETE FROM patients WHERE mrn=mrn_old;
+
+			n_deleted := n_deleted + 1;
+		END IF;
+	END LOOP;
+	RAISE NOTICE '';
+	RAISE NOTICE 'Totally updated % records and deleted % records.', n_updated, n_deleted;
+	return '';
+END;
+$$;
+
+
+ALTER FUNCTION public.removealldashesandleading0() OWNER TO postgres;
+
 SET default_tablespace = '';
 
 SET default_with_oids = false;
@@ -1194,6 +1289,55 @@ ALTER TABLE ONLY users
 
 ALTER TABLE ONLY users
     ADD CONSTRAINT uq_login UNIQUE (user_login);
+
+
+--
+-- Name: exams_patient_id_accession_number_idx; Type: INDEX; Schema: public; Owner: edge; Tablespace: 
+--
+
+CREATE INDEX exams_patient_id_accession_number_idx ON exams USING btree (patient_id, accession_number);
+
+
+--
+-- Name: exams_patient_id_idx; Type: INDEX; Schema: public; Owner: edge; Tablespace: 
+--
+
+CREATE INDEX exams_patient_id_idx ON exams USING btree (patient_id);
+
+
+--
+-- Name: job_sets_patient_id_idx; Type: INDEX; Schema: public; Owner: edge; Tablespace: 
+--
+
+CREATE INDEX job_sets_patient_id_idx ON job_sets USING btree (patient_id);
+
+
+--
+-- Name: patients_mrn_ix; Type: INDEX; Schema: public; Owner: edge; Tablespace: 
+--
+
+CREATE UNIQUE INDEX patients_mrn_ix ON patients USING btree (mrn);
+
+
+--
+-- Name: patients_name_mrn_dob_idx; Type: INDEX; Schema: public; Owner: edge; Tablespace: 
+--
+
+CREATE UNIQUE INDEX patients_name_mrn_dob_idx ON patients USING btree (patient_name, mrn, dob);
+
+
+--
+-- Name: patients_patient_id_name_mrn_dob_idx; Type: INDEX; Schema: public; Owner: edge; Tablespace: 
+--
+
+CREATE UNIQUE INDEX patients_patient_id_name_mrn_dob_idx ON patients USING btree (patient_id, patient_name, mrn, dob);
+
+
+--
+-- Name: reports_exam_id_status_status_timestamp_idx; Type: INDEX; Schema: public; Owner: edge; Tablespace: 
+--
+
+CREATE INDEX reports_exam_id_status_status_timestamp_idx ON reports USING btree (exam_id, status, status_timestamp);
 
 
 --

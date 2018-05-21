@@ -30,6 +30,13 @@ RUN chmod +x /load_sql.sh
 # add standard tools
 ENV TERM xterm
 RUN apt-get update && apt-get -y install nano
+RUN apt-get install -y \
+	net-tools \
+	nmap
+
+# add volume for data store
+VOLUME /var/lib/postgresql/data
+
 
 # add networking config - 
 ADD mypostgres.conf /etc/postgresql/postgresql.conf
