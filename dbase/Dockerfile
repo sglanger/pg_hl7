@@ -34,8 +34,9 @@ RUN apt-get install -y \
 	net-tools \
 	nmap
 
-# add volume for data store
-VOLUME /var/lib/postgresql/data
+# add volumes for persistent data store of configs, logs, data
+# problem - this method does not survive "docker rm instance"
+VOLUME ["/etc/postgresql/", "/var/log/postgresql/", "/var/lib/postgresql/data"]
 
 
 # add networking config - 

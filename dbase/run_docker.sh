@@ -21,8 +21,6 @@ host="127.0.0.1"
 repo="postgres"
 image="dbase"
 instance="pg"
-volume="sgl_data"
-
 
 case "$1" in
 	build)
@@ -31,17 +29,41 @@ case "$1" in
 		sudo docker stop $instance
 		sudo docker rmi -f $image
 		sudo docker rm $instance
-		sudo docker volume rm $volume
-
-		# create the postgre volume
-		sudo docker volume create $volume
 
 		# now build from clean. The DOcker run line uses --net="host" term to expose the docker
 		# on the Host's NIC. For better security, remove it
 		sudo docker build --rm=true -t $image .
-		sudo docker run  --net="host" --name $instance -e POSTGRES_PASSWORD=postgres -d $image  postgres -c 'config_file=/etc/postgresql/postgresql.conf'
-		sleep 3
+		sudo docker run  --net="host" --name $instance -e POSTGRES_PASSWORD=postgres  -d $image  postgres -c 'config_file=/etc/postgresql/postgresql.conf'
 		$0 status
+
+		# after it starts need to load dbase schema and then make volume shares
+		sudo docker exec -u root -it $instance /load_sql.sh
+		$0 backup
+	;;
+
+	backup)
+		# listed in ordeer they were created in DOckefile
+		conf=$(sudo docker inspect --format '{{ (index .Mounts 0).Source  }}' $instance )
+		log=$(sudo docker inspect --format '{{ (index .Mounts 1).Source  }}' $instance )
+		data=$(sudo docker inspect --format '{{ (index .Mounts 2).Source  }}' $instance  )
+
+		# have to run as root - sudo is not working
+		sudo ln -sf $conf /tmp/pg_conf
+		sudo ln -sf $log /tmp/pg_log
+		sudo ln -sf $data /tmp/pg_data
+
+		#	Method A: this methods backs up volumes - so multiple DOckers can use them
+		# https://github.com/discordianfish/docker-backup
+		# https://docs.docker.com/storage/volumes/#backup-a-container
+		# https://stackoverflow.com/questions/21597463/how-to-port-data-only-volumes-from-one-host-to-another/23778599#23778599
+		#sudo docker run --rm --volumes-from $instance -v /tmp:/pg busybox tar cvf /pg/$instance-conf.tar /etc/postgresql 
+		#sudo docker run --rm --volumes-from $instance -v /tmp:/pg busybox tar cvf /pg/$instance-log.tar /var/log/postgresql/ 
+		#sudo docker run --rm --volumes-from $instance -v /tmp:/pg busybox tar cvf /pg/$instance-data.tar /var/lib/postgresql/data
+		
+		# Method B: https://linoxide.com/linux-how-to/backup-restore-migrate-containers-docker/
+		# this method backs up the WHOLE docker - but does not preserve volumes
+		#sudo docker commit -p 17299c3b4bc6 $instance-backup
+		#sudo docker save -o /tmp/$instance.tar $instance-backup
 	;;
 
 	conn)
@@ -69,8 +91,7 @@ case "$1" in
 	;;
 
 	getip)
-		host=$(sudo docker inspect --format '{{ .NetworkSettings.IPAddress }}' $instance)
-		echo $host
+		echo docker IP is; sudo docker inspect --format '{{ .NetworkSettings.IPAddress }}' $instance
 	;;
 
 	restart)
@@ -80,27 +101,33 @@ case "$1" in
 
 	status)
 		sudo docker ps; echo
-		sudo docker volume inspect $volume ; echo
-		#sleep 3
-		#sudo docker images 
+		sleep 3
+		sudo docker inspect $instance ; echo
 	;;
 
 	stop)
-		# stops but does not remove image from DOcker engine
-		sudo docker stop $instance
-		sudo docker rm $instance
+		# then stop and remove docker instance, but don't remove image from DOcker engine
+		sudo docker container stop $instance
+		sudo docker container rm $instance
+		$0 status
 	;;
 
 	start)
-		# here we launch DOcker w/out the --net="host" tag , but then no ports are exposed including 104
-		# so we expose them one at a time with -p switches on the container address
-		host=$(sudo docker inspect --format '{{ .NetworkSettings.IPAddress }}' $instance)
-		# the trick is to know the IP before the docker is created, and yes it is a trick
-		# sudo docker run -p $host:2022:2022  --name $instance  -d $image
-		sudo docker run --net="host"  --name $instance -e POSTGRES_PASSWORD=postgres -d $image  postgres -c 'config_file=/etc/postgresql/postgresql.conf'
+		# https://stackoverflow.com/questions/25311613/docker-mounting-volumes-on-host
+		sudo docker run  --net="host" --name $instance -e POSTGRES_PASSWORD=postgres  -d $image \
+			-v /tmp/pg_conf:/etc/postgresql -v /tmp/pg_log:/var/log/postgresql/ -v /tmp/pg_data:/var/lib/postgresql/data \
+			postgres -c 'config_file=/etc/postgresql/postgresql.conf'
+
+		# Method A-2: restore from the backup volumes
+		#sudo docker run -v /etc/postgresql -v /var/log/postgresql/ -v /var/lib/postgresql/data --net="host" \
+		#	 --name $instance -e POSTGRES_PASSWORD=postgres  -d $image  postgres -c 'config_file=/etc/postgresql/postgresql.conf'
+		#sudo docker run --rm --volumes-from $instance -v /tmp:/pg ubuntu bash -c "cd / && tar xvf /pg/$instance-data.tar --strip 1"
+
+		# Method B-2: https://linoxide.com/linux-how-to/backup-restore-migrate-containers-docker/
+		#sudo docker load -i /tmp/$instance-backup.tar 
+		#sudo docker run  --net="host" --name $instance -e POSTGRES_PASSWORD=postgres  -d $image  postgres -c 'config_file=/etc/postgresql/postgresql.conf'
 		sleep 3
 		$0 status
-		sudo docker exec -it -u root $instance /bin/bash
 	;;
 
 	*)
