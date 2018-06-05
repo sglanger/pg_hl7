@@ -42,15 +42,16 @@ case "$1" in
 	;;
 
 	backup)
+		sudo rm /tmp/pg_* 
 		# listed in ordeer they were created in DOckefile
-		conf=$(sudo docker inspect --format '{{ (index .Mounts 0).Source  }}' $instance )
-		log=$(sudo docker inspect --format '{{ (index .Mounts 1).Source  }}' $instance )
-		data=$(sudo docker inspect --format '{{ (index .Mounts 2).Source  }}' $instance  )
+		conf=$(sudo docker inspect --format '{{ (index .Mounts 0).Source  }}' $instance ) 
+		data=$(sudo docker inspect --format '{{ (index .Mounts 1).Source  }}' $instance ) 
+		log=$(sudo docker inspect --format '{{ (index .Mounts 2).Source  }}' $instance  )
 
-		# have to run as root - sudo is not working
-		sudo ln -sf $conf /tmp/pg_conf
-		sudo ln -sf $log /tmp/pg_log
-		sudo ln -sf $data /tmp/pg_data
+		# creating symlinks to ROOT owned volumes is problematic - as we will see in START
+		sudo ln -s  $conf/ /tmp/pg_conf
+		sudo ln -s  $log/ /tmp/pg_log
+		sudo ln -s  $data/ /tmp/pg_data
 
 		#	Method A: this methods backs up volumes - so multiple DOckers can use them
 		# https://github.com/discordianfish/docker-backup
@@ -113,9 +114,13 @@ case "$1" in
 	;;
 
 	start)
-		# https://stackoverflow.com/questions/25311613/docker-mounting-volumes-on-host
-		sudo docker run  --net="host" --name $instance -e POSTGRES_PASSWORD=postgres  -d $image \
-			-v /tmp/pg_conf:/etc/postgresql -v /tmp/pg_log:/var/log/postgresql/ -v /tmp/pg_data:/var/lib/postgresql/data \
+		# mounting ROOT owned volumes is a pain - next 2 Refs deal with it
+		# https://stackoverflow.com/questions/23439126/how-to-mount-host-directory-in-docker-container
+		# https://denibertovic.com/posts/handling-permissions-with-docker-volumes/
+		# -v /tmp/pg_conf:/etc/postgresql -v /tmp/pg_log:/var/log/postgresql/ -v /tmp/pg_data:/var/lib/postgresql/data \
+		sudo docker run  -u '0' --net="host" --name $instance -e POSTGRES_PASSWORD=postgres  -d $image \
+			--mount src=/tmp/pg_conf,target=/etc/postgresql,type=bind  --mount src=/tmp/pg_log,target=/var/log/postgresql,type=bind \
+			--mount src=/tmp/pg_data,target=/var/lib/postgresql/data,type=bind \
 			postgres -c 'config_file=/etc/postgresql/postgresql.conf'
 
 		# Method A-2: restore from the backup volumes
