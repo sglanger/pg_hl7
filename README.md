@@ -6,7 +6,7 @@ this is intended to be a two part Compose project, enabling a MIRTH Docker clien
 For the status of each component, refer to the READMEs in their respective folders. They work in a standalone fashion now (4-25). When the below is finished they will work under the control of the single compose.yaml file
 
 
-### to Use and Deploy this Stack under Currently (all below is pending)
+### to Use and Deploy this Stack under Currently
 
 
 ### Clone this repo 
@@ -45,7 +45,7 @@ and see the usual MIRTH control installer. Go ahead and get the java webstart co
 
 
 
-### Compose stuff when working
+### Compose stuff when working  (all below is pending)
 
 ### Build the stack
 ---
