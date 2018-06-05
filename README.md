@@ -6,7 +6,7 @@ this is intended to be a two part Compose project, enabling a MIRTH Docker clien
 For the status of each component, refer to the READMEs in their respective folders. They work in a standalone fashion now (4-25). When the below is finished they will work under the control of the single compose.yaml file
 
 
-### to Use and Deploy this Stack under Currently
+### to Use and Deploy this Stack 
 
 
 ### Clone this repo 
