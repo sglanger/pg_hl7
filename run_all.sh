@@ -1,13 +1,14 @@
 #!/bin/bash
 
+clear
 case "$1" in
 
 	build)
 		od=$(pwd)
 		cd $od/dbase
-		sudo ./run_docker.sh build
+		sudo $od/dbase/run_docker.sh build
 		cd $od/mirth
-		sudo ./run_docker.sh build
+		sudo $od/mirth/run_docker.sh build
 		cd $od
 		$0 status
 		$0 instructions
@@ -15,9 +16,9 @@ case "$1" in
 
 
 	instructions)
-		echo "now should have pg and mc running"
-		echo "point your docker host's browser to http://dockerhost:8080 "
-		echo "to get the Mirth console and install your channels"
+		echo "You should now have "pg" and "mc" running"
+		echo "Point your docker host's browser to http://dockerhost:8080 "
+		echo "to get to the Mirth console, then install your channels"
 	;;
 
 	status)

@@ -20,8 +20,7 @@ For the status of each component, refer to the READMEs in their respective folde
 	sudo ./run_all build
 ---
 
-With all containers running you should see the follow new ports exposed on your docker host
-
+With all containers running you should see the following new ports exposed on your docker host
 * '5432': postgres
 * '8080': mirth java webstart downloader
 * '8443': mirth control port
@@ -31,8 +30,7 @@ You will also see the following volumes created under /tmp
 * 'pg_data': for the postgres tables
 * 'pg_log': for the postgres log files
 
-Wait for the services to start, and then you should be able to point your browser at the normal Mirth control URL
-
+After all the services start, you should be able to point your browser at the normal Mirth control URL
 ---
 	http://yourhost:8080
 ---
