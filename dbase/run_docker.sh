@@ -5,6 +5,8 @@
 # Purpose: put all the Docker commands to build/run 
 #	this Docker in one easy place
 #
+#	interesting read
+#  http://geekyap.blogspot.com/2016/11/docker-vs-singularity-vs-shifter-in-hpc.html
 ##########################################
 
 
